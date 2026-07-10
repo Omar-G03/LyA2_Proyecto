@@ -1,5 +1,15 @@
 package arbolE;
 
+import java.awt.Desktop;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
@@ -16,10 +26,168 @@ public class Frrameinterfaz extends javax.swing.JFrame {
     /**
      * Creates new form Frrameinterfaz
      */
+    //==== SECCION DE ATRIBUTOS  === 9 de Julio 2026
+    String nPolaca;
+    
+    int temp;
+    //JFrame vrntana;//Frame para arbol Grafico
+    
+    
     public Frrameinterfaz() {
         initComponents();
+        nPolaca = "";
+        temp = 0;
     }
+    
+    public void intermedio(Nodo n) {
+        if (n == null) {
+            return;
+        }
 
+        Nodo izquierdo = n.getIzquierdo();
+        Nodo derecho = n.getDerecho();
+
+        intermedio(izquierdo);
+        intermedio(derecho);
+
+        boolean esHoja = (izquierdo == null && derecho == null);
+
+        if (esHoja) {
+            n.setLugar(n.getDato() + " ");
+            n.setCodigoIntermedio(" ");
+            return;
+        }
+
+        switch (n.getDato()) {
+            case "+":
+            case "-":
+            case "*":
+            case "/":
+                generarCodigoOperador(n, izquierdo, derecho, n.getDato());
+                break;
+            case "=":
+                generarCodigoAsignacion(n, izquierdo, derecho);
+                break;
+            default:
+                // Operador no reconocido en esta regla; no se genera código
+                break;
+        }
+    }//Intermedio
+
+    private void generarCodigoOperador(Nodo n, Nodo izquierdo, Nodo derecho, String operador) {
+        temp++;
+        String lugarActual = "T" + temp;
+        n.setLugar(lugarActual);
+
+        String codigo = new StringBuilder()
+                .append(izquierdo.getCodigoIntermedio()).append(" ")
+                .append(derecho.getCodigoIntermedio()).append(" ")
+                .append(lugarActual).append(" = ")
+                .append(izquierdo.getLugar()).append(" ")
+                .append(operador).append(" ")
+                .append(derecho.getLugar())
+                .append("\n")
+                .toString();
+
+        n.setCodigoIntermedio(codigo);
+    }//generarCodigoOperador
+
+    private void generarCodigoAsignacion(Nodo n, Nodo izquierdo, Nodo derecho) {
+        String codigo = derecho.getDato() + " " +
+                izquierdo.getLugar() + " = T" + temp + "\n";
+        n.setCodigoIntermedio(codigo);
+    }//generarCodigoAsignacion
+    //=======METODOS inOrden, postOrden  y preOrden
+    public void inOrden(Nodo n){
+        if (n!= null) {
+           inOrden(n.getIzquierdo());
+           jTextInOrden.append(n.getDato()+ "\n");
+           inOrden(n.getDerecho()); 
+        }
+        
+        
+    }//inOrden
+    
+    public void preOrden(Nodo n){
+        if (n!=null) {
+            jTextPreOrden.append(n.getDato()+ "\n");
+            nPolaca += jNotacionPolaca.getText() + n.getDato()+" ";
+            jNotacionPolaca.setText(jNotacionPolaca.getText() + n.getDato()+" ");
+            
+            preOrden(n.getIzquierdo());
+            preOrden(n.getDerecho());
+        }
+    }//preOrden
+    
+    public void postOrden(Nodo n){
+        if (n!= null) {
+            postOrden(n.getIzquierdo());
+            postOrden(n.getDerecho());
+            jTextPostOrden.append(n.getDato() + "\n");
+        }
+    }//postOrden
+    
+    
+    
+    //========GUARDAR REGLAS SEMANTICAS EN ARCHIVO TXT =========
+    private void guardarReglasSemanticas(String contenido) {
+        // 1. Preguntar si desea guardar (Sí / No)
+        int respuesta = JOptionPane.showConfirmDialog(this,
+                "¿Desea guardar las reglas semánticas en un archivo de texto?",
+                "Guardar reglas semánticas",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+ 
+        if (respuesta != JOptionPane.YES_OPTION) {
+            return; // el usuario eligió "No" (o cerró el cuadro): no se guarda nada
+        }
+        
+         // 2. RUTA ESPECÍFICA donde se guardará el archivo.
+        //    Cambia esta ruta por la que necesites en tu equipo.
+        String ruta = "C:\\ReglasSemanticas\\reglas_semanticas.txt";
+ 
+        try {
+            File archivo = new File(ruta);
+            File carpeta = archivo.getParentFile();
+            if (carpeta != null && !carpeta.exists()) {
+                carpeta.mkdirs(); // crea la carpeta si todavía no existe
+            }
+ 
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(archivo))) {
+                bw.write(contenido);
+            }//try-with-resources: cierra el archivo automáticamente
+ 
+            JOptionPane.showMessageDialog(this,
+                    "Archivo guardado correctamente en:\n" + ruta,
+                    "Guardado exitoso", JOptionPane.INFORMATION_MESSAGE);
+ 
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Ocurrió un error al guardar el archivo:\n" + ex.getMessage(),
+                    "Error al guardar", JOptionPane.ERROR_MESSAGE);
+            logger.log(java.util.logging.Level.SEVERE, null, ex);
+        }
+    }//guardarReglasSemanticas
+    
+    
+    
+    
+    
+    //=======ABRIR VIDEO YOUTUBE
+    /**
+ * Abre el video de YouTube en el navegador predeterminado del sistema.
+ */
+private void abrirVideoYoutube() {
+    String url = "https://www.youtube.com/watch?v=P_dA92_bnXc";
+    try {
+        Desktop.getDesktop().browse(new URI(url));
+    } catch (IOException | URISyntaxException ex) {
+        JOptionPane.showMessageDialog(this,
+                "No se pudo abrir el video:\n" + ex.getMessage(),
+                "Error al abrir el enlace", JOptionPane.ERROR_MESSAGE);
+        logger.log(java.util.logging.Level.SEVERE, null, ex);
+    }
+}//abrirVideoYoutube
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -37,18 +205,18 @@ public class Frrameinterfaz extends javax.swing.JFrame {
         jTextField1 = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
+        jTextPreOrden = new javax.swing.JTextArea();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTextArea2 = new javax.swing.JTextArea();
+        jTextPostOrden = new javax.swing.JTextArea();
         jScrollPane3 = new javax.swing.JScrollPane();
-        jTextArea3 = new javax.swing.JTextArea();
+        jTextReglasSemanticas = new javax.swing.JTextArea();
         jScrollPane4 = new javax.swing.JScrollPane();
-        jTextArea4 = new javax.swing.JTextArea();
+        jTextInOrden = new javax.swing.JTextArea();
         jScrollPane5 = new javax.swing.JScrollPane();
-        jTextArea5 = new javax.swing.JTextArea();
+        jTextTresDirecciones = new javax.swing.JTextArea();
         jPanel2 = new javax.swing.JPanel();
         label6 = new java.awt.Label();
-        jTextField2 = new javax.swing.JTextField();
+        jNotacionPolaca = new javax.swing.JTextField();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
         jButton4 = new javax.swing.JButton();
@@ -58,6 +226,8 @@ public class Frrameinterfaz extends javax.swing.JFrame {
         label3 = new java.awt.Label();
         label4 = new java.awt.Label();
         label5 = new java.awt.Label();
+        jButton5 = new javax.swing.JButton();
+        jButton6 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -110,37 +280,34 @@ public class Frrameinterfaz extends javax.swing.JFrame {
         jLabel1.setText("Expresión");
 
         jTextField1.setBackground(new java.awt.Color(255, 255, 0));
-        jTextField1.setText("jTextField1");
 
         jButton1.setText("Compila");
         jButton1.addActionListener(this::jButton1ActionPerformed);
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane1.setViewportView(jTextArea1);
+        jTextPreOrden.setColumns(20);
+        jTextPreOrden.setRows(5);
+        jScrollPane1.setViewportView(jTextPreOrden);
 
-        jTextArea2.setColumns(20);
-        jTextArea2.setRows(5);
-        jScrollPane2.setViewportView(jTextArea2);
+        jTextPostOrden.setColumns(20);
+        jTextPostOrden.setRows(5);
+        jScrollPane2.setViewportView(jTextPostOrden);
 
-        jTextArea3.setColumns(20);
-        jTextArea3.setRows(5);
-        jScrollPane3.setViewportView(jTextArea3);
+        jTextReglasSemanticas.setColumns(20);
+        jTextReglasSemanticas.setRows(5);
+        jScrollPane3.setViewportView(jTextReglasSemanticas);
 
-        jTextArea4.setColumns(20);
-        jTextArea4.setRows(5);
-        jScrollPane4.setViewportView(jTextArea4);
+        jTextInOrden.setColumns(20);
+        jTextInOrden.setRows(5);
+        jScrollPane4.setViewportView(jTextInOrden);
 
-        jTextArea5.setColumns(20);
-        jTextArea5.setRows(5);
-        jScrollPane5.setViewportView(jTextArea5);
+        jTextTresDirecciones.setColumns(20);
+        jTextTresDirecciones.setRows(5);
+        jScrollPane5.setViewportView(jTextTresDirecciones);
 
         jPanel2.setBackground(new java.awt.Color(0, 0, 0));
 
         label6.setForeground(new java.awt.Color(255, 255, 255));
         label6.setText("NOtación Polaca");
-
-        jTextField2.setText("jTextField2");
 
         jButton2.setText("codigo 3 direccion");
         jButton2.setToolTipText("");
@@ -157,7 +324,7 @@ public class Frrameinterfaz extends javax.swing.JFrame {
                 .addGap(28, 28, 28)
                 .addComponent(label6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(30, 30, 30)
-                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 555, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jNotacionPolaca, javax.swing.GroupLayout.PREFERRED_SIZE, 555, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(jButton2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -172,7 +339,7 @@ public class Frrameinterfaz extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jNotacionPolaca, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(jButton2)
                         .addComponent(jButton3)
                         .addComponent(jButton4))
@@ -225,6 +392,12 @@ public class Frrameinterfaz extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
+        jButton5.setText("Agente IA");
+        jButton5.addActionListener(this::jButton5ActionPerformed);
+
+        jButton6.setText("Optimiza Intermedio");
+        jButton6.addActionListener(this::jButton6ActionPerformed);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -242,13 +415,17 @@ public class Frrameinterfaz extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jTextField1)
-                        .addGap(59, 59, 59)
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 158, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 499, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton5)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton6)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 54, Short.MAX_VALUE)
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(28, 28, 28)
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 223, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -270,7 +447,9 @@ public class Frrameinterfaz extends javax.swing.JFrame {
                     .addComponent(jLabel1)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jButton5)
+                        .addComponent(jButton6)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 298, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -294,8 +473,44 @@ public class Frrameinterfaz extends javax.swing.JFrame {
         datos = jTextField1.getText();
         
         Nodo arbolExpresion = a.crear(datos);//Enviar los datos
-        jTextArea3.append(a.getReglasEjecutadas());
+        jTextReglasSemanticas.append(a.getReglasEjecutadas());
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+        String datos= "";
+        
+        ArbolAgenteConIA arbol = new ArbolAgenteConIA();
+        datos = jTextField1.getText();
+        Nodo arbolExpresiones = arbol.crear(datos);
+        jTextReglasSemanticas.append(arbol.getReglasEjecutadas());
+        
+        JFrame ventana = new JFrame("Visualizardor de Arboles - LyA2");
+        PanelArbol panel = new PanelArbol(arbolExpresiones, arbol.tablaSimbolos);
+        
+        ventana.add(panel);
+        ventana.setSize(600, 400);
+        ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        ventana.setLocationRelativeTo(null);//Centrar en pantalla
+        ventana.setVisible(true);
+        
+        preOrden(arbolExpresiones);
+        inOrden(arbolExpresiones);
+        postOrden(arbolExpresiones);
+        intermedio(arbolExpresiones);
+        
+        jTextTresDirecciones.append(arbolExpresiones.getCodigoIntermedio());
+        
+        //Guardar archivo
+        String reglasSemanticas = arbol.getReglasEjecutadas();
+        jTextReglasSemanticas.append(reglasSemanticas);
+        guardarReglasSemanticas(reglasSemanticas);
+        
+        //
+    }//GEN-LAST:event_jButton5ActionPerformed
+
+    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
+        abrirVideoYoutube();
+    }//GEN-LAST:event_jButton6ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -329,9 +544,12 @@ public class Frrameinterfaz extends javax.swing.JFrame {
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton5;
+    private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JTextField jNotacionPolaca;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -340,13 +558,12 @@ public class Frrameinterfaz extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
-    private javax.swing.JTextArea jTextArea1;
-    private javax.swing.JTextArea jTextArea2;
-    private javax.swing.JTextArea jTextArea3;
-    private javax.swing.JTextArea jTextArea4;
-    private javax.swing.JTextArea jTextArea5;
     private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
+    private javax.swing.JTextArea jTextInOrden;
+    private javax.swing.JTextArea jTextPostOrden;
+    private javax.swing.JTextArea jTextPreOrden;
+    private javax.swing.JTextArea jTextReglasSemanticas;
+    private javax.swing.JTextArea jTextTresDirecciones;
     private java.awt.Label label1;
     private java.awt.Label label2;
     private java.awt.Label label3;
