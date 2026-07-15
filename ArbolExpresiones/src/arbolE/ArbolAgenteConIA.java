@@ -2,6 +2,7 @@ package arbolE;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Stack;
 import java.util.StringTokenizer;
 import javax.swing.JOptionPane;
@@ -32,6 +33,14 @@ public class ArbolAgenteConIA {
     
     //01 Julio
     ArrayList <String> reglasEjecutadas;
+
+    // ===== NUEVO: soporte para tripletas =====
+    ArrayList<String[]> tripletas = new ArrayList<>();
+    private final IdentityHashMap<Nodo, Integer> indiceTripleta = new IdentityHashMap<>();
+
+    // ===== NUEVO: soporte para valores del grafo (GAD) =====
+    private final IdentityHashMap<Nodo, Double> memoValores = new IdentityHashMap<>();
+
     //constructor
     public ArbolAgenteConIA(){
         reglasEjecutadas = new ArrayList <String>();
@@ -53,6 +62,11 @@ public class ArbolAgenteConIA {
             reglasE+=reglasEjecutadas.get(i)+"\n";
         }//for
         return reglasE;
+    }
+
+    // NUEVO
+    public ArrayList<String[]> getTripletas(){
+        return tripletas;
     }
     
     public void agregaValex (String lexema, String valor){
@@ -115,11 +129,121 @@ public class ArbolAgenteConIA {
         Nodo derecho   = arbolNodo.pop();
         String operador      = caracter.pop();
 
-        arbolNodo.push(new Nodo(derecho, operador, izquierdo));
+        Nodo nuevoNodo = new Nodo(derecho, operador, izquierdo);
+        arbolNodo.push(nuevoNodo);
+
+        // ===== NUEVO: Tripleta {operador, arg1, arg2} =====
+        // Nota: por cómo funciona el stack aquí, el operando pusheado
+        // PRIMERO (el izquierdo real de la expresión) queda en la
+        // variable local "derecho", y el pusheado SEGUNDO (el derecho
+        // real) queda en la variable local "izquierdo". Es una
+        // confusión de nombres que ya traía el código original, así
+        // que el orden correcto para la tripleta es (derecho, izquierdo):
+        String arg1 = obtenerReferenciaTripleta(derecho);
+        String arg2 = obtenerReferenciaTripleta(izquierdo);
+        tripletas.add(new String[]{operador, arg1, arg2});
+        indiceTripleta.put(nuevoNodo, tripletas.size() - 1);
 
         // OPTIMIZACIÓN: switch en lugar de 4 if independientes
         String reglaE = "E.nodo = new Nodo(" + operador + ", E1.nodo, T.nodo";
         reglasEjecutadas.add("p" + paso + " " + reglaE);
+    }
+
+    /**
+     * NUEVO
+     * Determina cómo se representa un operando dentro de una tripleta:
+     * - Si es una hoja (variable), se muestra su nombre tal cual.
+     * - Si es el resultado de una tripleta anterior, se referencia por
+     *   su índice entre paréntesis, ej. "(0)" = resultado de la tripleta #0.
+     */
+    private String obtenerReferenciaTripleta(Nodo n) {
+        boolean esHoja = (n.getIzquierdo() == null && n.getDerecho() == null);
+        if (esHoja) {
+            return n.getDato();
+        }
+        Integer indice = indiceTripleta.get(n);
+        return (indice != null) ? "(" + indice + ")" : n.getDato();
+    }
+
+    // ================= NUEVO: cálculo de valores para el grafo =================
+    public void calcularValoresParaGrafo(Nodo nodo) {
+        calcularValor(nodo);
+    }
+
+    private double calcularValor(Nodo nodo) {
+        if (nodo == null) return 0;
+        if (memoValores.containsKey(nodo)) return memoValores.get(nodo);
+
+        boolean esHoja = (nodo.getIzquierdo() == null && nodo.getDerecho() == null);
+        double valor;
+
+        if (esHoja) {
+            String texto = tablaSimbolos.get(nodo.getDato());
+            valor = (texto != null) ? Double.parseDouble(texto) : 0;
+        } else {
+            double izq = calcularValor(nodo.getIzquierdo());
+            double der = calcularValor(nodo.getDerecho());
+            valor = operarValor(nodo.getDato(), izq, der);
+        }
+
+        memoValores.put(nodo, valor);
+        nodo.setValor(formatearValorGrafo(valor));
+        return valor;
+    }
+
+    private double operarValor(String operador, double izq, double der) {
+        switch (operador) {
+            case "+": return izq + der;
+            case "-": return izq - der;
+            case "*": return izq * der;
+            case "/": return (der != 0) ? izq / der : 0;
+            case "^": return Math.pow(izq, der);
+            default:  return 0;
+        }
+    }
+
+    private String formatearValorGrafo(double valor) {
+        if (valor == Math.floor(valor) && !Double.isInfinite(valor)) {
+            return String.valueOf((long) valor);
+        }
+        return String.valueOf(valor);
+    }
+
+    // ================= NUEVO: conversión a GAD =================
+    public Nodo convertirAGAD(Nodo raizAST) {
+        HashMap<String, Nodo> tabla = new HashMap<>();
+        return convertir(raizAST, tabla);
+    }
+
+    private Nodo convertir(Nodo n, HashMap<String, Nodo> tabla) {
+        if (n == null) return null;
+
+        if (n.getIzquierdo() == null && n.getDerecho() == null) {
+            String clave = "HOJA#" + n.getDato();
+            Nodo existente = tabla.get(clave);
+            if (existente != null) return existente; // reutiliza
+            tabla.put(clave, n);
+            return n;
+        }
+
+        // Procesar hijos primero (post-orden): así al llegar al padre
+        // ya sabemos si los hijos son nodos compartidos o no.
+        Nodo izqNuevo = convertir(n.getIzquierdo(), tabla);
+        Nodo derNuevo = convertir(n.getDerecho(), tabla);
+
+        // Reasignar hijos (puede que ahora apunten a nodos ya existentes)
+        n.setIzquierdo(izqNuevo);
+        n.setDerecho(derNuevo);
+
+        String clave = n.getDato() + "#" 
+                     + System.identityHashCode(izqNuevo) + "#" 
+                     + System.identityHashCode(derNuevo);
+
+        Nodo existente = tabla.get(clave);
+        if (existente != null) return existente; 
+
+        tabla.put(clave, n);
+        return n;
     }
     
     //METODO DEL ARBOL

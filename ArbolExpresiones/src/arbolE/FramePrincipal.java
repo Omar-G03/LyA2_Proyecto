@@ -50,6 +50,7 @@ public class FramePrincipal extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
         jButton10 = new javax.swing.JButton();
+        jButton11 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -91,6 +92,7 @@ public class FramePrincipal extends javax.swing.JFrame {
         jButton6.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jButton6.setForeground(new java.awt.Color(255, 255, 255));
         jButton6.setText("Codigo Intermedio");
+        jButton6.addActionListener(this::jButton6ActionPerformed);
         getContentPane().add(jButton6, new org.netbeans.lib.awtextra.AbsoluteConstraints(355, 153, 142, -1));
 
         jButton7.setBackground(new java.awt.Color(0, 0, 204));
@@ -178,6 +180,13 @@ public class FramePrincipal extends javax.swing.JFrame {
 
         getContentPane().add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 313, 503, -1));
 
+        jButton11.setBackground(new java.awt.Color(0, 0, 204));
+        jButton11.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jButton11.setForeground(new java.awt.Color(255, 255, 255));
+        jButton11.setText("Asignación Individual");
+        jButton11.addActionListener(this::jButton11ActionPerformed);
+        getContentPane().add(jButton11, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 290, -1, -1));
+
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
@@ -192,6 +201,16 @@ public class FramePrincipal extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         Interfaz.setVisible(true);
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
+        FrameDescripcion ventana = new FrameDescripcion();
+        ventana.setVisible(true);
+    }//GEN-LAST:event_jButton6ActionPerformed
+
+    private void jButton11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton11ActionPerformed
+        SSADiagrama ventana = new SSADiagrama();
+        ventana.setVisible(true);
+    }//GEN-LAST:event_jButton11ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -221,6 +240,7 @@ public class FramePrincipal extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton10;
+    private javax.swing.JButton jButton11;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;

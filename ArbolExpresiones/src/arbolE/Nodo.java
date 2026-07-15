@@ -1,6 +1,4 @@
 package arbolE;
-
-
 /**
  *
  * @author Omar
@@ -19,11 +17,11 @@ public class Nodo {
     private Nodo derecho;
     private String codigoIntermedio;
     private String lugar;
+    private String valor; // NUEVO: valor calculado del nodo, usado por PanelGrafo
 
     public Nodo(String dato) {
         this.dato = dato;
     }
-
     public Nodo(Nodo derecho,String dato,  Nodo izquierdo) {
         this.dato = dato;
         this.padre = null;
@@ -32,54 +30,48 @@ public class Nodo {
         this.codigoIntermedio = "";
         this.lugar = "";
     }
-
     public String getDato() {
         return dato;
     }
-
     public void setDato(String dato) {
         this.dato = dato;
     }
-
     public Nodo getPadre() {
         return padre;
     }
-
     public void setPadre(Nodo padre) {
         this.padre = padre;
     }
-
     public Nodo getIzquierdo() {
         return izquierdo;
     }
-
     public void setIzquierdo(Nodo izquierdo) {
         this.izquierdo = izquierdo;
     }
-
     public Nodo getDerecho() {
         return derecho;
     }
-
     public void setDerecho(Nodo derecho) {
         this.derecho = derecho;
     }
-
     public String getCodigoIntermedio() {
         return codigoIntermedio;
     }
-
     public void setCodigoIntermedio(String codigoIntermedio) {
         this.codigoIntermedio = codigoIntermedio;
     }
-
     public String getLugar() {
         return lugar;
     }
-
     public void setLugar(String lugar) {
         this.lugar = lugar;
     }
-    
-    
+
+    // NUEVO: getter/setter de valor
+    public String getValor() {
+        return valor;
+    }
+    public void setValor(String valor) {
+        this.valor = valor;
+    }
 }
