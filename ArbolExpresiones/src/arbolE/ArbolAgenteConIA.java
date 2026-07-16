@@ -41,8 +41,16 @@ public class ArbolAgenteConIA {
     // ===== NUEVO: soporte para valores del grafo (GAD) =====
     private final IdentityHashMap<Nodo, Double> memoValores = new IdentityHashMap<>();
 
+    
+    public String emu86; // === 15 jul
     //constructor
     public ArbolAgenteConIA(){
+        
+        emu86 = "; JIMENEZ PEDRAZA OMAR GUADALUPE \n " +
+           ".MODEL SMALL\n"+
+           ".STACK \n"+
+           ".DATA \n";
+        
         reglasEjecutadas = new ArrayList <String>();
         tablaSimbolos = new HashMap();
         erroresSemanticos = new HashMap();
@@ -251,6 +259,7 @@ public class ArbolAgenteConIA {
         //1. Considerar la expresion como un conjunto de tokens
         StringTokenizer tokenizer;
         String token;
+        String valor= "";
         //0. Inicializar valores para varias ejecuciones
         paso=0;//Paso de las reglas semanticas  
         reglaSemantica = ""; r ="";
@@ -266,6 +275,9 @@ public class ArbolAgenteConIA {
            //no es un operador aritmetico
                 //6. Extraer de la pila los terminos que estaban
                 arbolNodo.push(new Nodo(token));
+                
+                emu86 += token+" dw "+ valor+"\n"; // 15 de julio
+                
                 paso++;
                 String regla ="T.nodo = new Hoja(id<"+token+">,id.entrada_"+token+")";
                 reglasEjecutadas.add("p"+paso+""+regla);

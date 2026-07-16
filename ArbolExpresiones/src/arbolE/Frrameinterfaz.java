@@ -10,7 +10,12 @@ import java.net.URISyntaxException;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import java.awt.Color;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.JColorChooser;
+import static javax.swing.JOptionPane.showMessageDialog;
+import java.util.ArrayList;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -42,12 +47,51 @@ public class Frrameinterfaz extends javax.swing.JFrame {
     private Color colorLineaGrafo = Color.BLACK;
     private float grosorLineaGrafo = 2f;
     
+    String izq, der;  // == 15 Julio
+    String emuLocal="";
+    int contador=0;
+    
+private ArrayList<String> archivosAsmGenerados = new ArrayList<>(); // NUEVO: reemplaza a ultimoArchivoAsm
     
     
+    //Constructor
     public Frrameinterfaz() {
         initComponents();
         nPolaca = "";
         temp = 0;
+        izq = ""; //15 Julio
+        der = ""; //15 Julio
+    }//Fin COnstructor
+    
+    
+    //*********GENERARDOR DE ARCHIVO .ASM
+    public void generarEmutasm(String emu, int i){
+        try{
+            FileWriter escritor = new FileWriter("e"+ i+ ".asm");
+            escritor.write(emu);
+            escritor.close();
+            System.out.println("Archivo creado existosamente");
+            
+        }catch (Exception e){
+            System.out.println("Ha ocurrido un error al crear el archivo");
+        }
+    }//FIN METODO ARCHIVO .ASM
+    
+    public void sonido(){
+        try {
+                    File sonido = new File("C:\\LyA 2\\ArbolExpresiones\\ArbolExpresiones\\src\\arbolE\\new-notification-022-370046.wav");
+                    if (sonido.exists()) {
+                        AudioInputStream audioStream = AudioSystem.getAudioInputStream(sonido);
+                        Clip clip = AudioSystem.getClip();
+                        clip.open(audioStream);
+                        clip.start(); 
+                    } else {
+                        showMessageDialog(null, "No se encontró el archivo de sonido.");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    showMessageDialog(null, "Error al reproducir el sonido.");
+                }
     }
     
     public void intermedio(Nodo n) {
@@ -114,7 +158,38 @@ public class Frrameinterfaz extends javax.swing.JFrame {
            inOrden(n.getIzquierdo());
            jTextInOrden.append(n.getDato()+ "\n");
            inOrden(n.getDerecho()); 
-        }
+           
+           
+           //15 de Julio
+
+           switch(n.getDato()){
+               case "+": 
+                   System.out.println("ADD JIMENEZ PEDRAZA ");
+                   izq = n.getIzquierdo().getDato();
+                   der = n.getDerecho().getDato();
+                   
+                   System.out.println("izq:" + izq);
+                   System.out.println("der:" + der);
+                   emuLocal += "MOV AX, "+ n.getIzquierdo().getDato()+"\n";
+                   emuLocal += "MOV BX, "+ n.getDerecho().getDato()+"\n";
+                   emuLocal += "ADD AX,BX"+ "\n\n";
+               break;
+               case "-": 
+                    izq = n.getIzquierdo().getDato();
+                    der = n.getDerecho().getDato();
+                   System.out.println("SUB");
+               break;
+               case "/": 
+                   System.out.println("DIV");
+                    izq = n.getIzquierdo().getDato();
+                    der = n.getDerecho().getDato();
+               break;
+               case "*": 
+                   System.out.println("MUL");
+                   izq = n.getIzquierdo().getDato();
+                   der = n.getDerecho().getDato();
+           }//FIN Switch
+        }//Fin If
         
         
     }//inOrden
@@ -222,6 +297,13 @@ private void abrirVideoYoutube() {
         logger.log(java.util.logging.Level.SEVERE, null, ex);
     }
 }//abrirVideoYoutube
+
+    private void abrirVentanaEmulador() {
+        FrameEmulador ventanaEmulador = new FrameEmulador(archivosAsmGenerados);
+        ventanaEmulador.setVisible(true);
+    }
+
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -435,7 +517,7 @@ private void abrirVideoYoutube() {
         jButton6.setText("Optimiza Intermedio");
         jButton6.addActionListener(this::jButton6ActionPerformed);
 
-        jButton7.setText("Descripcion C.Intermedio");
+        jButton7.setText("Abrir Emulador");
         jButton7.addActionListener(this::jButton7ActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -535,6 +617,22 @@ private void abrirVideoYoutube() {
         postOrden(arbolExpresiones);
         intermedio(arbolExpresiones);
         
+        arbol.emu86+= ".CODE \n"+
+                        "MOV AX, @DATA \n"+
+                        "MOV DS,AX \n";
+        
+        String finalEmu = arbol.emu86 + this.emuLocal;
+        finalEmu += "\n mov AX, 4c00h \n"+
+                "int 21h \n end";
+        showMessageDialog(null, finalEmu);
+        
+        contador++;
+        generarEmutasm(finalEmu,contador);
+        
+        
+        String rutaGenerada = new File("e" + contador + ".asm").getAbsolutePath();
+        archivosAsmGenerados.add(rutaGenerada); // NUEVO: se acumulan todos, no se sobreescribe
+        
         jTextTresDirecciones.append(arbolExpresiones.getCodigoIntermedio());
         
         //Guardar archivo
@@ -569,7 +667,7 @@ private void abrirVideoYoutube() {
     }//GEN-LAST:event_jButton6ActionPerformed
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
-
+        abrirVentanaEmulador();
         
     }//GEN-LAST:event_jButton7ActionPerformed
 

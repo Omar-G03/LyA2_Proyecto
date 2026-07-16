@@ -1,0 +1,17 @@
+; JIMENEZ PEDRAZA OMAR GUADALUPE 
+ .MODEL SMALL
+.STACK 
+.DATA 
+a dw 
+b dw 
+.CODE 
+MOV AX, @DATA 
+MOV DS,AX 
+MOV AX, b
+MOV BX, a
+ADD AX,BX
+
+
+ mov AX, 4c00h 
+int 21h 
+ end
