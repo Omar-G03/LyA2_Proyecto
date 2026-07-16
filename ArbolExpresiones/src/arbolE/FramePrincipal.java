@@ -17,6 +17,7 @@ public class FramePrincipal extends javax.swing.JFrame {
      */
     
     Frrameinterfaz Interfaz;
+    FrameLCD frameLCD;
     
     public FramePrincipal() {
         initComponents();
@@ -105,6 +106,7 @@ public class FramePrincipal extends javax.swing.JFrame {
         jButton8.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jButton8.setForeground(new java.awt.Color(255, 255, 255));
         jButton8.setText("N Polaca");
+        jButton8.addActionListener(this::jButton8ActionPerformed);
         getContentPane().add(jButton8, new org.netbeans.lib.awtextra.AbsoluteConstraints(355, 194, 142, -1));
 
         jButton9.setBackground(new java.awt.Color(0, 0, 204));
@@ -211,6 +213,11 @@ public class FramePrincipal extends javax.swing.JFrame {
         SSADiagrama ventana = new SSADiagrama();
         ventana.setVisible(true);
     }//GEN-LAST:event_jButton11ActionPerformed
+
+    private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton8ActionPerformed
+        frameLCD = new FrameLCD();
+        frameLCD.setVisible(true);
+    }//GEN-LAST:event_jButton8ActionPerformed
 
     /**
      * @param args the command line arguments
